@@ -228,6 +228,7 @@ typedef struct _SynapticsParameters {
 } SynapticsParameters;
 
 struct _SynapticsPrivateRec {
+    int isSynaptics;
     SynapticsParameters synpara;        /* Default parameter settings, read from
                                            the X config file */
     struct SynapticsProtocolOperations *proto_ops;

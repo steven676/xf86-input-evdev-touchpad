@@ -59,6 +59,8 @@
 #include "config.h"
 #endif
 
+#define BUILD_EVENTCOMM 1
+
 #include <xorg-server.h>
 #include <unistd.h>
 #include <misc.h>
@@ -76,6 +78,12 @@
 
 #include "synapticsstr.h"
 #include "synaptics-properties.h"
+
+extern InputInfoPtr trackpoint;
+extern BOOL
+EvdevWheelEmuFilterButton(InputInfoPtr pInfo, unsigned int button, int value);
+void
+EvdevProcessSyncEvent(InputInfoPtr pInfo, struct input_event *ev);
 
 enum EdgeType {
     NO_EDGE = 0,
@@ -119,8 +127,8 @@ enum EdgeType {
 /*****************************************************************************
  * Forward declaration
  ****************************************************************************/
-static int SynapticsPreInit(InputDriverPtr drv, InputInfoPtr pInfo, int flags);
-static void SynapticsUnInit(InputDriverPtr drv, InputInfoPtr pInfo, int flags);
+int SynapticsPreInit(InputDriverPtr drv, InputInfoPtr pInfo, int flags);
+void SynapticsUnInit(InputDriverPtr drv, InputInfoPtr pInfo, int flags);
 static Bool DeviceControl(DeviceIntPtr, int);
 static void ReadInput(InputInfoPtr);
 static int HandleState(InputInfoPtr, struct SynapticsHwState *, CARD32 now,
@@ -844,7 +852,7 @@ SynapticsAccelerationProfile(DeviceIntPtr dev,
     return accelfct;
 }
 
-static int
+int
 SynapticsPreInit(InputDriverPtr drv, InputInfoPtr pInfo, int flags)
 {
     SynapticsPrivate *priv;
@@ -860,6 +868,8 @@ SynapticsPreInit(InputDriverPtr drv, InputInfoPtr pInfo, int flags)
     pInfo->control_proc = ControlProc;
     pInfo->switch_mode = SwitchMode;
     pInfo->private = priv;
+
+    priv->isSynaptics = 1;
 
     /* allocate now so we don't allocate in the signal handler */
     priv->timer = TimerSet(NULL, 0, 0, NULL, NULL);
@@ -939,7 +949,7 @@ SynapticsPreInit(InputDriverPtr drv, InputInfoPtr pInfo, int flags)
 /*
  *  Uninitialize the device.
  */
-static void
+void
 SynapticsUnInit(InputDriverPtr drv, InputInfoPtr pInfo, int flags)
 {
     SynapticsPrivate *priv = ((SynapticsPrivate *) pInfo->private);
@@ -2801,7 +2811,9 @@ update_hw_button_state(const InputInfoPtr pInfo, struct SynapticsHwState *hw,
      * the soft button instead. */
     if (para->clickpad) {
         /* hw->left is down, but no other buttons were already down */
-        if (!(priv->lastButtons & 7) && hw->left && !hw->right && !hw->middle) {
+        if (!(priv->lastButtons & 7) &&
+	    hw->left && !hw->right && !hw->middle &&
+	    !hw->trackpoint_middle) {
             /* If the finger down event is delayed, the x and y
              * coordinates are stale so we delay processing the click */
             if (hw->z < para->finger_low) {
@@ -2819,6 +2831,11 @@ update_hw_button_state(const InputInfoPtr pInfo, struct SynapticsHwState *hw,
             else if (is_inside_middlebutton_area(para, hw->x, hw->y)) {
                 hw->left = 0;
                 hw->middle = 1;
+                if (trackpoint) {
+                    hw->middle = 0;
+                    hw->trackpoint_middle = 1;
+                    EvdevWheelEmuFilterButton(trackpoint, 2, 1);
+                }
             }
             else if (is_inside_sec_middlebutton_area(para, hw->x, hw->y)) {
                 hw->left = 0;
@@ -2830,6 +2847,11 @@ update_hw_button_state(const InputInfoPtr pInfo, struct SynapticsHwState *hw,
             hw->left   = (priv->lastButtons & 1) ? 1 : 0;
             hw->middle = (priv->lastButtons & 2) ? 1 : 0;
             hw->right  = (priv->lastButtons & 4) ? 1 : 0;
+        }
+        else if (hw->trackpoint_middle) {
+            hw->trackpoint_middle = 0;
+            EvdevWheelEmuFilterButton(trackpoint, 2, 0);
+            EvdevProcessSyncEvent(trackpoint, NULL);
         }
     }
 
