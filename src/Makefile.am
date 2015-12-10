@@ -40,5 +40,12 @@ AM_CPPFLAGS =-I$(top_srcdir)/include $(LIBEVDEV_CFLAGS)
                                emuWheel.c \
                                draglock.c \
                                apple.c \
-                               axis_labels.h
+                               axis_labels.h \
+                               eventcomm.c \
+                               eventcomm.h \
+                               properties.c \
+                               synaptics.c \
+                               synapticsstr.h \
+                               synproto.c \
+                               synproto.h
 
