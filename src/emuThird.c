@@ -40,7 +40,7 @@
 #include <xf86Xinput.h>
 #include <exevents.h>
 
-#include <evdev-properties.h>
+#include <evdevtouchpad-properties.h>
 
 /* Threshold (in device coordinates) for devices to cancel emulation */
 #define DEFAULT_MOVE_THRESHOLD 20

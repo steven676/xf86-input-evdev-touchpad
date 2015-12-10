@@ -42,7 +42,7 @@
 #include <X11/Xatom.h>
 #include <exevents.h>
 
-#include <evdev-properties.h>
+#include <evdevtouchpad-properties.h>
 
 static Atom prop_dlock     = 0; /* Drag lock buttons. */
 

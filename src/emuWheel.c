@@ -40,7 +40,7 @@
 #include <xf86Xinput.h>
 #include <exevents.h>
 
-#include <evdev-properties.h>
+#include <evdevtouchpad-properties.h>
 
 #define WHEEL_NOT_CONFIGURED 0
 

@@ -52,7 +52,7 @@
 #include <xkbsrv.h>
 
 #include <X11/Xatom.h>
-#include <evdev-properties.h>
+#include <evdevtouchpad-properties.h>
 #include <xserver-properties.h>
 #include <mtdev-plumbing.h>
 
@@ -215,7 +215,7 @@ EvdevIsDuplicate(InputInfoPtr pInfo)
     {
         EvdevPtr e;
 
-        if (strcmp(d->drv->driverName, "evdev") != 0)
+        if (strcmp(d->drv->driverName, "evdevtouchpad") != 0)
             continue;
 
         e = (EvdevPtr)d->private;
@@ -2675,9 +2675,9 @@ error:
     return rc;
 }
 
-_X_EXPORT InputDriverRec EVDEV = {
+_X_EXPORT InputDriverRec EVDEVTOUCHPAD = {
     1,
-    "evdev",
+    "evdevtouchpad",
     NULL,
     EvdevPreInit,
     EvdevUnInit,
@@ -2699,13 +2699,13 @@ EvdevPlug(pointer	module,
           int		*errmaj,
           int		*errmin)
 {
-    xf86AddInputDriver(&EVDEV, module, 0);
+    xf86AddInputDriver(&EVDEVTOUCHPAD, module, 0);
     return module;
 }
 
 static XF86ModuleVersionInfo EvdevVersionRec =
 {
-    "evdev",
+    "evdevtouchpad",
     MODULEVENDORSTRING,
     MODINFOSTRING1,
     MODINFOSTRING2,
@@ -2717,7 +2717,7 @@ static XF86ModuleVersionInfo EvdevVersionRec =
     {0, 0, 0, 0}
 };
 
-_X_EXPORT XF86ModuleData evdevModuleData =
+_X_EXPORT XF86ModuleData evdevtouchpadModuleData =
 {
     &EvdevVersionRec,
     EvdevPlug,

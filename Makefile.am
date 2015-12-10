@@ -26,9 +26,9 @@ SUBDIRS = src man include
 MAINTAINERCLEANFILES = ChangeLog INSTALL
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = xorg-evdev.pc
+pkgconfig_DATA = xorg-evdev-touchpad.pc
 
-dist_xorgconf_DATA = 10-evdev.conf
+dist_xorgconf_DATA = 10-evdev-touchpad.conf
 
 .PHONY: ChangeLog INSTALL
 

@@ -25,8 +25,8 @@
  */
 
 
-#ifndef _EVDEV_PROPERTIES_H_
-#define _EVDEV_PROPERTIES_H_
+#ifndef _EVDEVTOUCHPAD_PROPERTIES_H_
+#define _EVDEVTOUCHPAD_PROPERTIES_H_
 
 /* Middle mouse button emulation */
 /* BOOL */

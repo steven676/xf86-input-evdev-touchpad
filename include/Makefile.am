@@ -1,1 +1,1 @@
-sdk_HEADERS = evdev-properties.h
+sdk_HEADERS = evdevtouchpad-properties.h

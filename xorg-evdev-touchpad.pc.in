@@ -1,0 +1,6 @@
+sdkdir=@sdkdir@
+
+Name: xorg-evdev-touchpad
+Description: X.Org evdev input driver for Tx40 trackpoint/clickpads.
+Version: @PACKAGE_VERSION@
+Cflags: -I${sdkdir}

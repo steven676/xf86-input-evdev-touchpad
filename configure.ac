@@ -22,10 +22,10 @@
 
 # Initialize Autoconf
 AC_PREREQ([2.60])
-AC_INIT([xf86-input-evdev],
+AC_INIT([xf86-input-evdev-touchpad],
         [2.10.0],
         [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg],
-        [xf86-input-evdev])
+        [xf86-input-evdev-touchpad])
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_AUX_DIR(.)
@@ -67,7 +67,7 @@ AC_ARG_WITH(xorg-conf-dir,
 AC_SUBST(xorgconfdir)
 
 # X Server SDK location is required to install evdev header files
-# This location is also relayed in the xorg-evdev.pc file
+# This location is also relayed in the xorg-evdev-touchpad.pc file
 sdkdir=`$PKG_CONFIG --variable=sdkdir xorg-server`
 
 # Workaround overriding sdkdir to be able to create a tarball when user has no
@@ -75,12 +75,12 @@ sdkdir=`$PKG_CONFIG --variable=sdkdir xorg-server`
 AC_ARG_WITH([sdkdir], [], [sdkdir="$withval"])
 AC_SUBST([sdkdir])
 
-DRIVER_NAME=evdev
+DRIVER_NAME=evdevtouchpad
 AC_SUBST([DRIVER_NAME])
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
                  man/Makefile
                  include/Makefile
-                 xorg-evdev.pc])
+                 xorg-evdev-touchpad.pc])
 AC_OUTPUT

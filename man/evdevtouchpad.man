@@ -1,13 +1,13 @@
 .\" shorthand for double quote that works everywhere.
 .ds q \N'34'
-.TH EVDEV __drivermansuffix__ __vendorversion__
+.TH EVDEVTOUCHPAD __drivermansuffix__ __vendorversion__
 .SH NAME
-evdev \- Generic Linux input driver
+evdevtouchpad \- Generic Linux input driver
 .SH SYNOPSIS
 .nf
 .B "Section \*qInputDevice\*q"
 .BI "  Identifier \*q" devname \*q
-.B  "  Driver \*qevdev\*q"
+.B  "  Driver \*qevdevtouchpad\*q"
 .BI "  Option \*qDevice\*q   \*q" devpath \*q
 .BI "  Option \*qEmulate3Buttons\*q     \*q" True \*q
 .BI "  Option \*qEmulate3Timeout\*q     \*q" 50 \*q
@@ -16,22 +16,22 @@ evdev \- Generic Linux input driver
 .B EndSection
 .fi
 .SH DESCRIPTION
-.B evdev 
+.B evdevtouchpad
 is an __xservername__ input driver for Linux\'s generic event devices.  It
 therefore supports all input devices that the kernel knows about, including
 most mice, keyboards, tablets and touchscreens.
-.B evdev
+.B evdevtouchpad
 is the default driver on the major Linux distributions.
 .PP
 The 
-.B evdev
+.B evdevtouchpad
 driver can serve as both a pointer and a keyboard input device. Multiple
 input devices are supported by multiple instances of this driver, with one
 InputDevice section of your __xconfigfile__ for each input device that will
 use this driver.
 .PP
 It is recommended that
-.B evdev
+.B evdevtouchpad
 devices are configured through the
 .B InputClass
 directive (refer to __xconfigfile__(__filemansuffix__)) instead of manual
@@ -41,7 +41,7 @@ __xconfigfile__(__filemansuffix__) are not hot-plug capable.
 .SH SUPPORTED HARDWARE
 In general, any input device that the kernel has a driver for can be accessed
 through the 
-.B evdev
+.B evdevtouchpad
 driver.  See the Linux kernel documentation for a complete list.
 .PP
 .SH CONFIGURATION DETAILS
@@ -247,7 +247,7 @@ acceleration. If set to 0 no scaling will be performed. Default: "0".
 
 .SH SUPPORTED PROPERTIES
 The following properties are provided by the
-.B evdev
+.B evdevtouchpad
 driver.
 .TP 7
 .BI "Evdev Axis Calibration"

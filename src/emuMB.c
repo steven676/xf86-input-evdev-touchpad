@@ -41,7 +41,7 @@
 #include <xf86Xinput.h>
 #include <exevents.h>
 
-#include <evdev-properties.h>
+#include <evdevtouchpad-properties.h>
 
 static Atom prop_mbemu     = 0; /* Middle button emulation on/off property */
 static Atom prop_mbtimeout = 0; /* Middle button timeout property */
