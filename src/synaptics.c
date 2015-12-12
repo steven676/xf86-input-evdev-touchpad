@@ -2842,6 +2842,11 @@ update_hw_button_state(const InputInfoPtr pInfo, struct SynapticsHwState *hw,
             else if (is_inside_sec_middlebutton_area(para, hw->x, hw->y)) {
                 hw->left = 0;
                 hw->middle = 1;
+                if (trackpoint) {
+                    hw->middle = 0;
+                    hw->trackpoint_middle = 1;
+                    EvdevWheelEmuFilterButton(trackpoint, 2, 1);
+                }
             }
             priv->clickpad_click_millis = now;
         }
