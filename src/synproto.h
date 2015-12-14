@@ -79,7 +79,7 @@ struct SynapticsHwState {
     Bool multi[8];
     Bool middle;                /* Some ALPS touchpads have a middle button */
 
-    Bool trackpoint_middle;
+    Bool secondary_area_press;  /* Track top button pad presses */
 
     int num_mt_mask;
     ValuatorMask **mt_mask;

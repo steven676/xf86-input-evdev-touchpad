@@ -2814,8 +2814,8 @@ update_hw_button_state(const InputInfoPtr pInfo, struct SynapticsHwState *hw,
     if (para->clickpad) {
         /* hw->left is down, but no other buttons were already down */
         if (!(priv->lastButtons & 7) &&
-	    hw->left && !hw->right && !hw->middle &&
-	    !hw->trackpoint_middle) {
+            hw->left && !hw->right && !hw->middle &&
+            !hw->secondary_area_press) {
             /* If the finger down event is delayed, the x and y
              * coordinates are stale so we delay processing the click */
             if (hw->z < para->finger_low) {
@@ -2829,36 +2829,41 @@ update_hw_button_state(const InputInfoPtr pInfo, struct SynapticsHwState *hw,
             else if (is_inside_sec_rightbutton_area(para, hw->x, hw->y)) {
                 hw->left = 0;
                 hw->right = 1;
+                if (trackpoint)
+                    hw->secondary_area_press |= 4;
             }
             else if (is_inside_middlebutton_area(para, hw->x, hw->y)) {
                 hw->left = 0;
                 hw->middle = 1;
-                if (trackpoint) {
-                    hw->middle = 0;
-                    hw->trackpoint_middle = 1;
-                    EvdevWheelEmuFilterButton(trackpoint, 2, 1);
-                }
             }
             else if (is_inside_sec_middlebutton_area(para, hw->x, hw->y)) {
                 hw->left = 0;
                 hw->middle = 1;
-                if (trackpoint) {
-                    hw->middle = 0;
-                    hw->trackpoint_middle = 1;
-                    EvdevWheelEmuFilterButton(trackpoint, 2, 1);
-                }
+                if (trackpoint)
+                    hw->secondary_area_press |= 2;
             }
             priv->clickpad_click_millis = now;
+            if (hw->secondary_area_press) {
+                /* XXX: cannot track secondary area left button presses */
+                if (hw->secondary_area_press & 2)
+                    hw->middle = !EvdevWheelEmuFilterButton(trackpoint, 2, 1);
+                if (hw->secondary_area_press & 4)
+                    hw->right = !EvdevWheelEmuFilterButton(trackpoint, 3, 1);
+            }
         }
         else if (hw->left) {
             hw->left   = (priv->lastButtons & 1) ? 1 : 0;
             hw->middle = (priv->lastButtons & 2) ? 1 : 0;
             hw->right  = (priv->lastButtons & 4) ? 1 : 0;
         }
-        else if (hw->trackpoint_middle) {
-            hw->trackpoint_middle = 0;
-            EvdevWheelEmuFilterButton(trackpoint, 2, 0);
+        else if (hw->secondary_area_press) {
+            /* Mouse button up in secondary area */
+            if (hw->secondary_area_press & 2)
+                EvdevWheelEmuFilterButton(trackpoint, 2, 0);
+            if (hw->secondary_area_press & 4)
+                EvdevWheelEmuFilterButton(trackpoint, 3, 0);
             EvdevProcessSyncEvent(trackpoint, NULL);
+            hw->secondary_area_press = 0;
         }
     }
 
