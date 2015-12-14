@@ -169,6 +169,7 @@ const static struct {
     { NULL, NULL }
 };
 
+#if 0 /* evdev-touchpad: don't expose the synaptics driver to the server */
 InputDriverRec SYNAPTICS = {
     1,
     "synaptics",
@@ -207,6 +208,7 @@ _X_EXPORT XF86ModuleData synapticsModuleData = {
     &SetupProc,
     NULL
 };
+#endif
 
 /*****************************************************************************
  *	Function Definitions
