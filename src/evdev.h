@@ -67,6 +67,18 @@
 #define LogMessageVerbSigSafe xf86MsgVerb
 #endif
 
+#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 23
+#define HAVE_THREADED_INPUT	1
+#endif
+
+#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 24
+#define BLOCK_HANDLER_ARGS     	void *data, void *waitTime
+#define WAKEUP_HANDLER_ARGS	void *data, int i
+#else
+#define BLOCK_HANDLER_ARGS	pointer data, struct timeval **waitTime, pointer LastSelectMask
+#define WAKEUP_HANDLER_ARGS	void *data, int i, pointer LastSelectMask
+#endif
+
 #define EVDEV_MAXBUTTONS 32
 #define EVDEV_MAXQUEUE 32
 
@@ -186,6 +198,7 @@ typedef struct {
         int                 state;       /* state machine (see bt3emu.c) */
         Time                expires;     /* time of expiry */
         Time                timeout;
+        uint8_t             button;      /* phys button to emit */
     } emulateMB;
     /* Third mouse button emulation */
     struct emulate3B {
@@ -262,8 +275,8 @@ unsigned int EvdevUtilButtonEventToButtonNumber(EvdevPtr pEvdev, int code);
 /* Middle Button emulation */
 int  EvdevMBEmuTimer(InputInfoPtr);
 BOOL EvdevMBEmuFilterEvent(InputInfoPtr, int, BOOL);
-void EvdevMBEmuWakeupHandler(pointer, int, pointer);
-void EvdevMBEmuBlockHandler(pointer, struct timeval**, pointer);
+void EvdevMBEmuWakeupHandler(WAKEUP_HANDLER_ARGS);
+void EvdevMBEmuBlockHandler(BLOCK_HANDLER_ARGS);
 void EvdevMBEmuPreInit(InputInfoPtr);
 void EvdevMBEmuOn(InputInfoPtr);
 void EvdevMBEmuFinalize(InputInfoPtr);

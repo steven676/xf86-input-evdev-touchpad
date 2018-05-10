@@ -435,6 +435,14 @@ static void
 EvdevProcessValuators(InputInfoPtr pInfo)
 {
     EvdevPtr pEvdev = pInfo->private;
+    int val;
+
+    if (pEvdev->abs_vals) {
+            if (valuator_mask_fetch(pEvdev->abs_vals, 0, &val))
+                    valuator_mask_set(pEvdev->old_vals, 0, val);
+            if (valuator_mask_fetch(pEvdev->abs_vals, 1, &val))
+                    valuator_mask_set(pEvdev->old_vals, 1, val);
+    }
 
     /* Apply transformations on relative coordinates */
     if (pEvdev->rel_queued) {
@@ -770,12 +778,17 @@ EvdevProcessAbsoluteMotionEvent(InputInfoPtr pInfo, struct input_event *ev)
     if (ev->code > ABS_MAX)
         return;
 
+    /* Always store the current abs valuator, we need it to update old_vals
+     * which is required by wheel emulation */
+    map = pEvdev->abs_axis_map[ev->code];
+    if (map < 2)
+            valuator_mask_set(pEvdev->abs_vals, map, value);
+
     if (EvdevWheelEmuFilterMotion(pInfo, ev))
         return;
 
     if (ev->code >= ABS_MT_SLOT) {
         EvdevProcessTouchEvent(pInfo, ev);
-        pEvdev->abs_queued = 1;
     } else if (!pEvdev->mt_mask) {
         map = pEvdev->abs_axis_map[ev->code];
 
@@ -786,9 +799,7 @@ EvdevProcessAbsoluteMotionEvent(InputInfoPtr pInfo, struct input_event *ev)
                 valuator_mask_set(pEvdev->rel_vals, map, value - oldval);
                 pEvdev->rel_queued = 1;
             }
-            valuator_mask_set(pEvdev->old_vals, map, value);
         } else {
-            /* the normal case: just store the number. */
             valuator_mask_set(pEvdev->abs_vals, map, value);
             pEvdev->abs_queued = 1;
         }
@@ -1101,6 +1112,7 @@ EvdevKbdCtrl(DeviceIntPtr device, KeybdCtrl *ctrl)
     InputInfoPtr pInfo;
     struct input_event ev[ArrayLength(bits) + 1];
     int i;
+    int rc;
 
     memset(ev, 0, sizeof(ev));
 
@@ -1115,7 +1127,9 @@ EvdevKbdCtrl(DeviceIntPtr device, KeybdCtrl *ctrl)
     ev[i].code = SYN_REPORT;
     ev[i].value = 0;
 
-    write(pInfo->fd, ev, sizeof ev);
+    rc = write(pInfo->fd, ev, sizeof ev);
+    if (rc != sizeof ev)
+	    xf86IDrvMsg(pInfo, X_ERROR, "Failed to set keyboard controls: %s\n", strerror(errno));
 }
 
 static int
@@ -1228,7 +1242,7 @@ EvdevCountMTAxes(EvdevPtr pEvdev, int *num_mt_axes_total,
         return;
 
     /* Absolute multitouch axes: adjust mapping and axes counts. */
-    for (axis = ABS_MT_SLOT; axis < ABS_MAX; axis++)
+    for (axis = ABS_MT_SLOT; axis <= ABS_MAX; axis++)
     {
         int j;
         Bool skip = FALSE;
@@ -1278,7 +1292,7 @@ EvdevAddAbsValuatorClass(DeviceIntPtr device, int num_scroll_axes)
         goto out;
 
     /* Find number of absolute axis, including MT ones, will decrease later. */
-    for (i = 0; i < ABS_MAX; i++)
+    for (i = 0; i <= ABS_MAX; i++)
         if (libevdev_has_event_code(pEvdev->dev, EV_ABS, i))
             num_axes++;
 
@@ -1382,7 +1396,7 @@ EvdevAddAbsValuatorClass(DeviceIntPtr device, int num_scroll_axes)
     }
     atoms = malloc((pEvdev->num_vals + num_mt_axes) * sizeof(Atom));
 
-    i = 0;
+    i = 2;
     for (axis = ABS_X; i < MAX_VALUATORS && axis <= ABS_MAX; axis++) {
         int j;
         pEvdev->abs_axis_map[axis] = -1;
@@ -1390,9 +1404,14 @@ EvdevAddAbsValuatorClass(DeviceIntPtr device, int num_scroll_axes)
             is_blacklisted_axis(axis))
             continue;
 
-        mapping = i;
+        if (axis == ABS_X)
+            mapping = 0;
+        else if (axis == ABS_Y)
+            mapping = 1;
+        else
+            mapping = i;
 
-        for (j = 0; j < ArrayLength(mt_axis_mappings); j++)
+        for (j = 0; !pEvdev->fake_mt && j < ArrayLength(mt_axis_mappings); j++)
         {
             if (mt_axis_mappings[j].code == axis)
                 mt_axis_mappings[j].mapping = mapping;
@@ -1441,7 +1460,7 @@ EvdevAddAbsValuatorClass(DeviceIntPtr device, int num_scroll_axes)
         }
 
         for (i = 0; i < num_touches; i++) {
-            for (axis = ABS_MT_TOUCH_MAJOR; axis < ABS_MAX; axis++) {
+            for (axis = ABS_MT_TOUCH_MAJOR; axis <= ABS_MAX; axis++) {
                 if (pEvdev->abs_axis_map[axis] >= 0) {
                     int val = pEvdev->mtdev ? 0 : libevdev_get_current_slot(pEvdev->dev);
                     /* XXX: read initial values from mtdev when it adds support
@@ -1654,7 +1673,7 @@ EvdevAddRelValuatorClass(DeviceIntPtr device, int num_scroll_axes)
     if (!libevdev_has_event_type(pEvdev->dev, EV_REL))
         goto out;
 
-    for (i = 0; i < REL_MAX; i++) {
+    for (i = 0; i <= REL_MAX; i++) {
         if (i == REL_WHEEL || i == REL_HWHEEL || i == REL_DIAL)
             continue;
 
@@ -2804,6 +2823,9 @@ static void EvdevInitButtonLabels(EvdevPtr pEvdev, int natoms, Atom *atoms)
     {
         int group = (button % 0x100)/16;
         int idx = button - ((button/16) * 16);
+
+        if (group >= ArrayLength(btn_labels))
+            break;
 
         if (!libevdev_has_event_code(pEvdev->dev, EV_KEY, button))
             continue;
