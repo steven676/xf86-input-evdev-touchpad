@@ -28,7 +28,7 @@ MAINTAINERCLEANFILES = ChangeLog INSTALL
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = xorg-evdev-touchpad.pc
 
-dist_xorgconf_DATA = 51-evdev-touchpad.conf
+dist_xorgconf_DATA = 71-evdev-touchpad.conf
 
 .PHONY: ChangeLog INSTALL
 
